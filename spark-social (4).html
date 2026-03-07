@@ -1,0 +1,1350 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spark</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Fraunces:ital,wght@0,600;1,600&display=swap');
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --bg:#f6f5f0;
+  --bg2:#eeede7;
+  --bg3:#e4e3dc;
+  --card:#ffffff;
+  --border:#e0dfd8;
+  --text:#18180f;
+  --text2:#72716a;
+  --text3:#b0afa8;
+  --accent:#ff5c35;
+  --accent2:#e04820;
+  --accentbg:#fff3f0;
+  --blue:#3b6ef0;
+  --green:#2cb67d;
+  --red:#e84040;
+  --shadow-sm:0 1px 2px rgba(0,0,0,.05);
+  --shadow:0 2px 8px rgba(0,0,0,.07),0 0 0 1px rgba(0,0,0,.04);
+  --shadow-lg:0 8px 32px rgba(0,0,0,.10),0 0 0 1px rgba(0,0,0,.04);
+  --r:14px;
+}
+
+html,body{min-height:100%;font-family:'Outfit',sans-serif;font-size:15px;color:var(--text);background:var(--bg)}
+body{display:flex;flex-direction:column;min-height:100vh}
+
+/* ════════════════════════════
+   AUTH
+════════════════════════════ */
+#auth-screen{
+  display:none;min-height:100vh;
+  background:linear-gradient(135deg,#fff8f6 0%,#f6f5f0 50%,#f0f5ff 100%);
+  align-items:center;justify-content:center;padding:20px;
+}
+#auth-screen.active{display:flex}
+
+.auth-wrap{width:100%;max-width:420px}
+
+.auth-brand{text-align:center;margin-bottom:32px}
+.auth-brand .brand-name{font-family:'Fraunces',serif;font-size:2.8rem;font-weight:600;
+  color:var(--text);letter-spacing:-1px;line-height:1}
+.auth-brand .brand-name span{color:var(--accent);font-style:italic}
+.auth-brand p{font-size:.88rem;color:var(--text2);margin-top:8px}
+
+.auth-card{background:var(--card);border-radius:24px;box-shadow:var(--shadow-lg);overflow:hidden}
+
+.auth-tabs{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--border)}
+.auth-tab{padding:16px;border:none;background:none;font-family:'Outfit',sans-serif;
+  font-size:.9rem;font-weight:500;color:var(--text3);cursor:pointer;transition:all .2s;
+  position:relative}
+.auth-tab::after{content:'';position:absolute;bottom:0;left:20%;right:20%;height:2px;
+  background:var(--accent);transform:scaleX(0);transition:transform .25s;border-radius:2px}
+.auth-tab:hover{color:var(--text2);background:var(--bg)}
+.auth-tab.active{color:var(--text);font-weight:600;background:var(--card)}
+.auth-tab.active::after{transform:scaleX(1)}
+
+.auth-body{padding:28px}
+
+.auth-av-zone{width:72px;height:72px;border-radius:50%;border:2px dashed var(--border);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;margin:0 auto 24px;
+  overflow:hidden;background:var(--bg);font-size:1.6rem;transition:all .2s;flex-shrink:0}
+.auth-av-zone:hover{border-color:var(--accent);background:var(--accentbg)}
+.auth-av-zone img{width:100%;height:100%;object-fit:cover}
+
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
+.field label{font-size:.72rem;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.6px}
+.inp{background:var(--bg);border:1.5px solid var(--border);border-radius:10px;
+  padding:11px 14px;font-family:'Outfit',sans-serif;font-size:.95rem;color:var(--text);
+  outline:none;width:100%;transition:all .2s}
+.inp:focus{border-color:var(--accent);background:var(--card);box-shadow:0 0 0 4px rgba(255,92,53,.08)}
+.inp::placeholder{color:var(--text3)}
+textarea.inp{resize:vertical;min-height:72px}
+
+.btn-main{width:100%;padding:13px;background:var(--accent);color:white;border:none;
+  border-radius:10px;font-family:'Outfit',sans-serif;font-size:.95rem;font-weight:600;
+  cursor:pointer;transition:all .2s;margin-top:4px;letter-spacing:.2px}
+.btn-main:hover{background:var(--accent2);transform:translateY(-1px);box-shadow:0 4px 16px rgba(255,92,53,.3)}
+.btn-main:active{transform:translateY(0)}
+.btn-main:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none}
+
+.btn-ghost{padding:9px 18px;background:none;border:1.5px solid var(--border);border-radius:10px;
+  font-family:'Outfit',sans-serif;font-size:.88rem;font-weight:500;cursor:pointer;
+  color:var(--text);transition:all .2s}
+.btn-ghost:hover{border-color:var(--text2);background:var(--bg2)}
+
+.auth-err{font-size:.8rem;color:var(--red);margin-top:10px;min-height:16px;text-align:center}
+
+/* ════════════════════════════
+   APP SHELL
+════════════════════════════ */
+#app{display:none;flex-direction:column;flex:1}
+
+.topbar{position:sticky;top:0;z-index:200;height:58px;
+  background:rgba(255,255,255,.88);backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;padding:0 20px}
+.brand{font-family:'Fraunces',serif;font-size:1.5rem;font-weight:600;
+  color:var(--text);letter-spacing:-.5px;cursor:pointer}
+.brand span{color:var(--accent);font-style:italic}
+.topbar-r{display:flex;align-items:center;gap:6px}
+
+.tbtn{width:38px;height:38px;border-radius:50%;border:none;background:none;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  color:var(--text2);transition:all .15s;font-size:1.1rem}
+.tbtn:hover{background:var(--bg2);color:var(--text)}
+.tbtn.accent{background:var(--accent);color:white;font-size:.95rem;font-weight:700}
+.tbtn.accent:hover{background:var(--accent2)}
+
+.top-av{width:34px;height:34px;border-radius:50%;object-fit:cover;cursor:pointer;
+  border:2px solid var(--border);transition:all .2s;display:block}
+.top-av:hover{border-color:var(--accent)}
+
+/* ════════════════════════════
+   LAYOUT
+════════════════════════════ */
+.main{display:flex;justify-content:center;padding:16px 12px 80px;
+  max-width:620px;margin:0 auto;width:100%}
+.feed{flex:1;width:100%;display:flex;flex-direction:column;gap:16px;min-width:0}
+.sidebar{display:none}
+
+
+
+.page{display:none}
+.page.active{display:block}
+
+/* ════════════════════════════
+   SIDEBAR
+════════════════════════════ */
+.scard{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:18px;overflow:hidden}
+
+.me-row{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.sav{width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid var(--border);
+  background:var(--bg2);flex-shrink:0}
+.sname{font-weight:600;font-size:.92rem}
+.shandle{font-size:.78rem;color:var(--text2)}
+.sdivider{height:1px;background:var(--border);margin:14px 0}
+.stitle{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.7px;
+  color:var(--text3);margin-bottom:12px}
+
+.sugg{display:flex;align-items:center;gap:10px;padding:6px 0}
+.sugg-av{width:36px;height:36px;border-radius:50%;object-fit:cover;border:1px solid var(--border);
+  flex-shrink:0;background:var(--bg2);cursor:pointer;transition:opacity .15s}
+.sugg-av:hover{opacity:.8}
+.sugg-info{flex:1;min-width:0}
+.sugg-name{font-size:.86rem;font-weight:500;white-space:nowrap;overflow:hidden;
+  text-overflow:ellipsis;cursor:pointer;color:var(--text)}
+.sugg-name:hover{text-decoration:underline}
+.sugg-sub{font-size:.75rem;color:var(--text2)}
+.follow-btn{font-size:.78rem;font-weight:600;color:var(--accent);background:none;border:none;
+  cursor:pointer;white-space:nowrap;padding:5px 10px;border-radius:20px;
+  transition:background .15s}
+.follow-btn:hover{background:var(--accentbg)}
+
+/* ════════════════════════════
+   CREATE BAR
+════════════════════════════ */
+.create-bar{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);
+  padding:14px 16px;display:flex;align-items:center;gap:12px}
+.cav{width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid var(--border);
+  flex-shrink:0;background:var(--bg2)}
+.fake-inp{flex:1;background:var(--bg);border:1.5px solid var(--border);border-radius:20px;
+  padding:9px 16px;font-size:.9rem;color:var(--text3);cursor:pointer;
+  transition:all .2s;user-select:none}
+.fake-inp:hover{border-color:var(--accent);color:var(--text2);background:var(--accentbg)}
+.pic-btn{width:36px;height:36px;border-radius:50%;border:1.5px solid var(--border);
+  background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-size:1rem;transition:all .2s;flex-shrink:0}
+.pic-btn:hover{border-color:var(--accent);background:var(--accentbg)}
+
+/* ════════════════════════════
+   POST CARD
+════════════════════════════ */
+.pcard{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);
+  overflow:hidden;transition:box-shadow .2s}
+.pcard:hover{box-shadow:var(--shadow-lg)}
+
+.pheader{display:flex;align-items:center;gap:11px;padding:14px 16px}
+.pav{width:40px;height:40px;border-radius:50%;object-fit:cover;
+  border:2px solid var(--border);cursor:pointer;flex-shrink:0;background:var(--bg2);transition:opacity .15s}
+.pav:hover{opacity:.85}
+.pmeta{flex:1;min-width:0}
+.puname{font-weight:600;font-size:.92rem;cursor:pointer;color:var(--text);display:inline}
+.puname:hover{text-decoration:underline}
+.ptime{font-size:.74rem;color:var(--text3);margin-top:1px}
+.del-btn{width:32px;height:32px;border-radius:50%;border:none;background:none;
+  cursor:pointer;color:var(--text3);display:flex;align-items:center;justify-content:center;
+  font-size:.85rem;transition:all .15s;flex-shrink:0}
+.del-btn:hover{background:var(--bg2);color:var(--red)}
+
+.pimg{width:100%;display:block;background:var(--bg2);max-height:540px;object-fit:cover}
+.pimg-landscape{aspect-ratio:4/3;object-fit:cover}
+
+.pbody{padding:12px 16px}
+.pactions{display:flex;align-items:center;gap:4px;margin-bottom:10px}
+.act-btn{display:flex;align-items:center;gap:5px;padding:6px 10px;border:none;
+  background:none;border-radius:8px;cursor:pointer;font-family:'Outfit',sans-serif;
+  font-size:.82rem;font-weight:500;color:var(--text2);transition:all .15s}
+.act-btn:hover{background:var(--bg);color:var(--text)}
+.act-btn.liked{color:var(--red)}
+.act-btn .ico{font-size:1.1rem;line-height:1}
+.pcaption{font-size:.9rem;line-height:1.55;color:var(--text);margin-bottom:6px}
+.pcaption strong{font-weight:600;cursor:pointer;margin-right:5px}
+.pcaption strong:hover{text-decoration:underline}
+.more-comments{font-size:.8rem;color:var(--text3);cursor:pointer;display:block;margin-bottom:4px}
+.more-comments:hover{color:var(--text2)}
+
+/* ════════════════════════════
+   COMMENTS
+════════════════════════════ */
+.csec{border-top:1px solid var(--border);padding:12px 16px;display:none}
+.csec.open{display:block}
+.citem{display:flex;gap:9px;margin-bottom:10px}
+.cav{width:28px;height:28px;border-radius:50%;object-fit:cover;border:1px solid var(--border);
+  flex-shrink:0;background:var(--bg2)}
+.cbubble{flex:1;background:var(--bg);border-radius:10px;padding:8px 11px}
+.cuname{font-size:.78rem;font-weight:600;cursor:pointer;margin-right:5px}
+.cuname:hover{text-decoration:underline}
+.ctext{font-size:.85rem;color:var(--text);line-height:1.4}
+.ctime{font-size:.7rem;color:var(--text3);margin-top:3px}
+.cinp-row{display:flex;gap:8px;align-items:center;margin-top:8px}
+.cinp{flex:1;background:var(--bg);border:1.5px solid var(--border);border-radius:20px;
+  padding:8px 14px;font-family:'Outfit',sans-serif;font-size:.85rem;color:var(--text);
+  outline:none;transition:all .2s}
+.cinp:focus{border-color:var(--accent);background:var(--card)}
+.cinp::placeholder{color:var(--text3)}
+.csend{padding:8px 14px;background:var(--accent);color:white;border:none;border-radius:20px;
+  font-size:.8rem;font-weight:600;cursor:pointer;transition:background .15s;font-family:'Outfit',sans-serif}
+.csend:hover{background:var(--accent2)}
+
+/* ════════════════════════════
+   MODAL
+════════════════════════════ */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:500;
+  display:none;align-items:center;justify-content:center;padding:20px;
+  backdrop-filter:blur(6px);animation:fdin .18s}
+@keyframes fdin{from{opacity:0}to{opacity:1}}
+.modal-bg.open{display:flex}
+.mbox{background:var(--card);border-radius:24px;padding:28px;max-width:500px;width:100%;
+  box-shadow:var(--shadow-lg);animation:mup .22s ease}
+@keyframes mup{from{transform:translateY(16px);opacity:0}to{transform:translateY(0);opacity:1}}
+.mtitle{font-family:'Fraunces',serif;font-size:1.3rem;font-weight:600;margin-bottom:20px;color:var(--text)}
+
+.img-drop{width:100%;aspect-ratio:16/10;border:2px dashed var(--border);border-radius:14px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  cursor:pointer;background:var(--bg);overflow:hidden;margin-bottom:16px;transition:all .2s;
+  position:relative}
+.img-drop:hover{border-color:var(--accent);background:var(--accentbg)}
+.img-drop img{width:100%;height:100%;object-fit:cover;pointer-events:none}
+.drop-ph{text-align:center;color:var(--text3);pointer-events:none}
+.drop-ph .dico{font-size:2.2rem;margin-bottom:8px}
+.drop-ph p{font-size:.85rem}
+.drop-ph small{font-size:.75rem;opacity:.7}
+
+.mbtns{display:flex;gap:10px;margin-top:18px}
+.mbtns .btn-main{flex:1;margin-top:0}
+
+/* ════════════════════════════
+   PROFILE
+════════════════════════════ */
+.profile-card{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:28px}
+.profile-top{display:flex;align-items:flex-start;gap:22px;margin-bottom:22px;flex-wrap:wrap}
+.pav-wrap{position:relative;flex-shrink:0}
+.big-av{width:88px;height:88px;border-radius:50%;object-fit:cover;
+  border:3px solid var(--border);background:var(--bg2)}
+.av-edit{position:absolute;bottom:2px;right:2px;width:26px;height:26px;border-radius:50%;
+  background:var(--accent);color:white;border:2px solid white;display:flex;
+  align-items:center;justify-content:center;cursor:pointer;font-size:.65rem;transition:background .15s}
+.av-edit:hover{background:var(--accent2)}
+.pinfo{flex:1;min-width:160px}
+.p-fullname{font-family:'Fraunces',serif;font-size:1.5rem;font-weight:600;color:var(--text);line-height:1.2;margin-bottom:2px}
+.p-handle{font-size:.85rem;color:var(--text2);margin-bottom:8px}
+.p-bio{font-size:.88rem;color:var(--text);line-height:1.55}
+.pstats{display:flex;gap:0;flex-wrap:wrap}
+.stat .n{font-weight:700;font-size:1.15rem;color:var(--text);display:block}
+.stat .l{font-size:.72rem;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
+
+.pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px}
+.pgrid-item{aspect-ratio:1;object-fit:cover;width:100%;cursor:pointer;
+  background:var(--bg2);transition:opacity .18s;display:block}
+.pgrid-item:hover{opacity:.8}
+.pgrid-ph{aspect-ratio:1;background:var(--bg2);display:flex;align-items:center;
+  justify-content:center;font-size:1.5rem;color:var(--text3);cursor:pointer}
+
+/* ════════════════════════════
+   BOTTOM NAV (mobile)
+════════════════════════════ */
+.bnav{display:flex;position:fixed;bottom:0;left:0;right:0;height:60px;
+  background:rgba(255,255,255,.95);backdrop-filter:blur(16px);
+  border-top:1px solid var(--border);z-index:100;justify-content:space-around;align-items:center}
+
+.bnav-btn{display:flex;flex-direction:column;align-items:center;padding:8px 20px;
+  cursor:pointer;color:var(--text3);border:none;background:none;font-size:.62rem;
+  gap:3px;transition:color .15s}
+.bnav-btn.active,.bnav-btn:hover{color:var(--accent)}
+.bnav-btn svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2}
+
+/* ════════════════════════════
+   EMPTY / SKELETON
+════════════════════════════ */
+.empty{text-align:center;padding:52px 20px;color:var(--text3)}
+.empty .ei{font-size:2.8rem;margin-bottom:12px}
+.empty p{font-size:.9rem}
+.skel{background:linear-gradient(90deg,var(--bg2) 25%,var(--bg3) 50%,var(--bg2) 75%);
+  background-size:200%;animation:shim 1.3s infinite;border-radius:8px}
+@keyframes shim{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+/* ════════════════════════════
+   TOAST
+════════════════════════════ */
+.toast{position:fixed;bottom:76px;left:50%;transform:translateX(-50%) translateY(12px);
+  background:var(--text);color:white;padding:10px 22px;border-radius:24px;font-size:.85rem;
+  font-weight:500;z-index:9999;opacity:0;transition:all .28s;white-space:nowrap;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.ok{background:var(--green)}
+.toast.err{background:var(--red)}
+
+input[type=file]{display:none}
+
+/* ════════════════════════════
+   ADMIN PANEL
+════════════════════════════ */
+.admin-panel{background:linear-gradient(135deg,#0f0f1a 0%,#1a1128 100%);
+  border-radius:var(--r);box-shadow:var(--shadow-lg);overflow:hidden;margin-top:0}
+.admin-topbar{display:flex;align-items:center;gap:12px;padding:18px 22px;
+  border-bottom:1px solid rgba(255,255,255,.08)}
+.admin-badge{background:linear-gradient(135deg,#ff5c35,#ff2d7a);
+  color:white;font-size:.65rem;font-weight:700;letter-spacing:1.5px;
+  text-transform:uppercase;padding:4px 10px;border-radius:20px}
+.admin-title{font-family:'Fraunces',serif;font-size:1.1rem;color:white;flex:1}
+.admin-stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;
+  background:rgba(255,255,255,.06);border-bottom:1px solid rgba(255,255,255,.08)}
+.admin-stat{padding:16px 20px;text-align:center}
+.admin-stat .n{font-family:'Fraunces',serif;font-size:1.8rem;font-weight:600;
+  color:white;display:block;line-height:1}
+.admin-stat .l{font-size:.7rem;color:rgba(255,255,255,.4);text-transform:uppercase;
+  letter-spacing:.8px;margin-top:4px;display:block}
+.admin-tabs{display:flex;gap:0;border-bottom:1px solid rgba(255,255,255,.08);padding:0 22px}
+.admin-tab{padding:12px 16px;background:none;border:none;font-family:'Outfit',sans-serif;
+  font-size:.82rem;font-weight:500;color:rgba(255,255,255,.4);cursor:pointer;
+  position:relative;transition:color .2s}
+.admin-tab::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;
+  background:var(--accent);transform:scaleX(0);transition:transform .22s;border-radius:2px}
+.admin-tab.active{color:white}
+.admin-tab.active::after{transform:scaleX(1)}
+.admin-content{padding:16px}
+/* user rows */
+.admin-user-row{display:flex;align-items:center;gap:12px;padding:10px 12px;
+  border-radius:10px;transition:background .15s;cursor:pointer}
+.admin-user-row:hover{background:rgba(255,255,255,.06)}
+.admin-uav{width:38px;height:38px;border-radius:50%;object-fit:cover;
+  border:2px solid rgba(255,255,255,.1);flex-shrink:0;background:rgba(255,255,255,.08)}
+.admin-uinfo{flex:1;min-width:0}
+.admin-uname{font-weight:600;font-size:.88rem;color:white;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis}
+.admin-uhandle{font-size:.75rem;color:rgba(255,255,255,.4)}
+.admin-uposts{font-size:.75rem;color:rgba(255,255,255,.5);flex-shrink:0;text-align:right}
+.admin-uposts strong{color:var(--accent);font-size:.88rem;display:block}
+.admin-del-u{width:28px;height:28px;border-radius:50%;border:none;background:rgba(232,64,64,.15);
+  color:rgba(232,64,64,.7);cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-size:.8rem;transition:all .15s;flex-shrink:0}
+.admin-del-u:hover{background:rgba(232,64,64,.35);color:#e84040}
+/* post rows */
+.admin-post-row{display:flex;align-items:center;gap:12px;padding:10px 12px;
+  border-radius:10px;transition:background .15s}
+.admin-post-row:hover{background:rgba(255,255,255,.06)}
+.admin-thumb{width:48px;height:48px;border-radius:8px;object-fit:cover;
+  flex-shrink:0;background:rgba(255,255,255,.08);display:flex;align-items:center;
+  justify-content:center;color:rgba(255,255,255,.3);font-size:1.2rem}
+.admin-post-info{flex:1;min-width:0}
+.admin-post-by{font-size:.78rem;color:rgba(255,255,255,.5);margin-bottom:2px}
+.admin-post-cap{font-size:.85rem;color:white;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.admin-post-meta{font-size:.72rem;color:rgba(255,255,255,.35);flex-shrink:0;text-align:right;line-height:1.6}
+.admin-del-p{width:28px;height:28px;border-radius:50%;border:none;background:rgba(232,64,64,.15);
+  color:rgba(232,64,64,.7);cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-size:.8rem;transition:all .15s;flex-shrink:0}
+.admin-del-p:hover{background:rgba(232,64,64,.35);color:#e84040}
+.admin-empty{text-align:center;padding:32px;color:rgba(255,255,255,.3);font-size:.88rem}
+.admin-search{width:100%;background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.1);
+  border-radius:10px;padding:9px 14px;font-family:'Outfit',sans-serif;font-size:.88rem;
+  color:white;outline:none;margin-bottom:12px;transition:all .2s}
+.admin-search:focus{border-color:var(--accent);background:rgba(255,255,255,.1)}
+.admin-search::placeholder{color:rgba(255,255,255,.25)}
+
+/* ── FOLLOW ── */
+.follow-action-btn{padding:9px 22px;border-radius:20px;border:none;font-family:'Outfit',sans-serif;
+  font-size:.88rem;font-weight:600;cursor:pointer;transition:all .2s;letter-spacing:.2px}
+.follow-action-btn.follow{background:var(--accent);color:white}
+.follow-action-btn.follow:hover{background:var(--accent2);transform:translateY(-1px)}
+.follow-action-btn.following{background:var(--bg2);color:var(--text2);border:1.5px solid var(--border)}
+.follow-action-btn.following:hover{background:#ffe5e0;color:var(--red);border-color:var(--red)}
+
+/* ── SUBSCRIPTIONS ── */
+.subs-section{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden}
+.subs-tabs{display:flex;border-bottom:1px solid var(--border)}
+.subs-tab{flex:1;padding:13px;border:none;background:none;font-family:'Outfit',sans-serif;
+  font-size:.86rem;font-weight:500;color:var(--text3);cursor:pointer;transition:all .2s;position:relative}
+.subs-tab::after{content:'';position:absolute;bottom:0;left:15%;right:15%;height:2px;
+  background:var(--accent);transform:scaleX(0);transition:transform .22s;border-radius:2px}
+.subs-tab.active{color:var(--text);font-weight:600}
+.subs-tab.active::after{transform:scaleX(1)}
+.subs-list{padding:8px 12px;max-height:320px;overflow-y:auto}
+.subs-item{display:flex;align-items:center;gap:10px;padding:8px 4px;border-radius:10px;
+  transition:background .15s;cursor:pointer}
+.subs-item:hover{background:var(--bg)}
+.subs-av{width:36px;height:36px;border-radius:50%;object-fit:cover;border:1.5px solid var(--border);
+  flex-shrink:0;background:var(--bg2)}
+.subs-info{flex:1;min-width:0}
+.subs-name{font-size:.88rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.subs-handle{font-size:.75rem;color:var(--text2)}
+.subs-empty{text-align:center;padding:28px;color:var(--text3);font-size:.86rem}
+</style>
+</head>
+<body>
+
+<!-- ══ AUTH ══ -->
+<div id="auth-screen">
+  <div class="auth-wrap">
+    <div class="auth-brand">
+      <div class="brand-name">Spark<span>.</span></div>
+      <p>Partage ce qui t'inspire</p>
+    </div>
+    <div class="auth-card">
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="tab-login">Connexion</button>
+        <button class="auth-tab" id="tab-signup">Inscription</button>
+      </div>
+      <!-- LOGIN -->
+      <div class="auth-body" id="form-login">
+        <div class="field"><label>Pseudo</label><input class="inp" id="login-name" placeholder="ton_pseudo" maxlength="20" autocomplete="username"/></div>
+        <div class="field"><label>Mot de passe</label><input class="inp" id="login-pwd" type="password" placeholder="••••••" autocomplete="current-password"/></div>
+        <button class="btn-main" id="btn-login">Se connecter</button>
+        <div class="auth-err" id="login-err"></div>
+      </div>
+      <!-- SIGNUP -->
+      <div class="auth-body" id="form-signup" style="display:none">
+        <div class="auth-av-zone" id="signup-av-zone" title="Ajouter une photo">📷</div>
+        <input type="file" id="signup-av-input" accept="image/*"/>
+        <div class="field"><label>Pseudo</label><input class="inp" id="su-name" placeholder="ton_pseudo" maxlength="20"/></div>
+        <div class="field"><label>Nom affiché</label><input class="inp" id="su-fullname" placeholder="Ton nom" maxlength="40"/></div>
+        <div class="field"><label>Mot de passe</label><input class="inp" id="su-pwd" type="password" placeholder="••••••"/></div>
+        <div class="field"><label>Bio</label><textarea class="inp" id="su-bio" placeholder="Dis quelque chose sur toi..."></textarea></div>
+        <button class="btn-main" id="btn-signup">Créer mon compte</button>
+        <div class="auth-err" id="signup-err"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ APP ══ -->
+<div id="app">
+  <div class="topbar">
+    <div class="brand" id="logo-home">Spark<span>.</span></div>
+    <div class="topbar-r">
+      <button class="tbtn accent" id="btn-new-post" title="Nouvelle publication">＋</button>
+      <img class="top-av" id="top-av" src="" alt="Mon profil"/>
+    </div>
+  </div>
+
+  <!-- FEED -->
+  <div class="page active" id="page-feed">
+    <div class="main">
+      <div class="feed">
+        <div class="create-bar">
+          <img class="cav" id="feed-cav" src="" alt=""/>
+          <div class="fake-inp" id="open-feed">Quoi de neuf ?</div>
+          <button class="pic-btn" id="open-img" title="Photo">🖼️</button>
+        </div>
+        <div id="feed-list"></div>
+      </div>
+      <div class="sidebar">
+        <div class="scard">
+          <div class="me-row">
+            <img class="sav" id="sav" src="" alt=""/>
+            <div><div class="sname" id="sname"></div><div class="shandle" id="shandle"></div></div>
+          </div>
+          <button class="btn-ghost" style="width:100%;font-size:.82rem" id="btn-logout">Se déconnecter</button>
+        </div>
+        <div class="scard">
+          <div class="stitle">Suggestions</div>
+          <div id="suggestions"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROFILE -->
+  <div class="page" id="page-profile">
+    <div class="main" style="flex-direction:column;align-items:center">
+      <div style="width:100%;max-width:620px;display:flex;flex-direction:column;gap:16px">
+        <div class="profile-card" id="profile-hd"></div>
+        <div class="scard" style="padding:3px;border-radius:var(--r);overflow:hidden">
+          <div class="pgrid" id="pgrid"></div>
+        </div>
+        <div class="subs-section" id="subs-section" style="display:none">
+          <div class="subs-tabs">
+            <button class="subs-tab active" data-subs-tab="following">Abonnements <span id="subs-following-count"></span></button>
+            <button class="subs-tab" data-subs-tab="followers">Abonnés <span id="subs-followers-count"></span></button>
+          </div>
+          <div class="subs-list" id="subs-list"></div>
+        </div>
+        <div class="admin-panel" id="admin-panel" style="display:none">
+          <div class="admin-topbar">
+            <div class="admin-badge">⚡ Admin</div>
+            <div class="admin-title">Panneau d'administration</div>
+            <button id="adm-refresh" title="Rafraîchir" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.6);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:.85rem;font-family:'Outfit',sans-serif;transition:all .2s">↺</button>
+          </div>
+          <div class="admin-stats-row">
+            <div class="admin-stat"><span class="n" id="adm-n-users">—</span><span class="l">Membres</span></div>
+            <div class="admin-stat"><span class="n" id="adm-n-posts">—</span><span class="l">Publications</span></div>
+            <div class="admin-stat"><span class="n" id="adm-n-likes">—</span><span class="l">Likes</span></div>
+          </div>
+          <div class="admin-tabs">
+            <button class="admin-tab active" data-adm-tab="users">👥 Membres</button>
+            <button class="admin-tab" data-adm-tab="posts">🖼️ Publications</button>
+          </div>
+          <div class="admin-content">
+            <input class="admin-search" id="adm-search" placeholder="Rechercher..."/>
+            <div id="adm-list"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bnav">
+    <button class="bnav-btn active" id="bnav-feed">
+      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Accueil
+    </button>
+    <button class="bnav-btn" id="bnav-post">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+      Publier
+    </button>
+    <button class="bnav-btn" id="bnav-profile">
+      <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Profil
+    </button>
+  </nav>
+</div>
+
+<!-- ══ CREATE MODAL ══ -->
+<div class="modal-bg" id="modal-create">
+  <div class="mbox">
+    <div class="mtitle">Nouvelle publication</div>
+    <div class="img-drop" id="img-drop">
+      <div class="drop-ph"><div class="dico">📸</div><p>Clique pour choisir une image</p><small>optionnel</small></div>
+    </div>
+    <input type="file" id="post-img-file" accept="image/*"/>
+    <div class="field"><label>Légende</label><textarea class="inp" id="post-cap" placeholder="Dis quelque chose..." style="min-height:56px"></textarea></div>
+    <div class="mbtns">
+      <button class="btn-ghost" id="btn-cancel-post">Annuler</button>
+      <button class="btn-main" id="btn-post">Publier</button>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="av-edit-input" accept="image/*"/>
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase,ref,set,get,onValue,update,remove,off,push }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const db=getDatabase(initializeApp({
+  apiKey:"AIzaSyD5iHeUwIGlQwK-WPbhAkj0Wg5rbjc9-rs",
+  authDomain:"hack-terminal-game-d9b04.firebaseapp.com",
+  databaseURL:"https://hack-terminal-game-d9b04-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId:"hack-terminal-game-d9b04",
+  storageBucket:"hack-terminal-game-d9b04.firebasestorage.app",
+  messagingSenderId:"895717198964",
+  appId:"1:895717198964:web:9590c7a61f57bccba59521"
+},'spark_v3'));
+
+// ── STATE ──────────────────────────────────────────────────
+let myId=null,myData=null,feedListener=null,pendingImg=null,signupAv=null;
+
+// ── UTILS ──────────────────────────────────────────────────
+const $=id=>document.getElementById(id);
+const esc=s=>(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const ago=ts=>{
+  const s=Math.floor((Date.now()-ts)/1000);
+  if(s<60)return 'à l\'instant';
+  if(s<3600)return Math.floor(s/60)+'min';
+  if(s<86400)return Math.floor(s/3600)+'h';
+  return Math.floor(s/86400)+'j';
+};
+const DEFAV=`data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'><rect width='40' height='40' rx='20' fill='%23e4e3dc'/><text x='50%' y='54%' dominant-baseline='middle' text-anchor='middle' font-size='20' fill='%23b0afa8'>👤</text></svg>`;
+
+function toast(msg,type=''){
+  const t=$('toast');t.textContent=msg;
+  t.className='toast'+(type?' '+type:'')+' show';
+  setTimeout(()=>{t.className='toast'+(type?' '+type:'');},2800);
+}
+
+// ── COMPRESS ───────────────────────────────────────────────
+function compress(file,maxW=900,q=0.72){
+  return new Promise(res=>{
+    const r=new FileReader();
+    r.onload=e=>{
+      const img=new Image();
+      img.onload=()=>{
+        let w=img.width,h=img.height;
+        if(w>maxW){h=Math.round(h*maxW/w);w=maxW;}
+        if(h>maxW){w=Math.round(w*maxW/h);h=maxW;}
+        const c=document.createElement('canvas');
+        c.width=w;c.height=h;
+        c.getContext('2d').drawImage(img,0,0,w,h);
+        res(c.toDataURL('image/jpeg',q));
+      };
+      img.src=e.target.result;
+    };
+    r.readAsDataURL(file);
+  });
+}
+
+// ── SESSION ────────────────────────────────────────────────
+const LS='spark_v3';
+const saveS=()=>{try{localStorage.setItem(LS,JSON.stringify({id:myId}));}catch(e){}};
+const loadS=()=>{try{return JSON.parse(localStorage.getItem(LS));}catch(e){return null;}};
+const clearS=()=>{try{localStorage.removeItem(LS);}catch(e){}};
+
+// ── AUTH TABS ──────────────────────────────────────────────
+let currentTab='login';
+function switchTab(tab){
+  currentTab=tab;
+  $('tab-login').classList.toggle('active',tab==='login');
+  $('tab-signup').classList.toggle('active',tab==='signup');
+  $('form-login').style.display=tab==='login'?'block':'none';
+  $('form-signup').style.display=tab==='signup'?'block':'none';
+  $('login-err').textContent='';
+  $('signup-err').textContent='';
+}
+$('tab-login').addEventListener('click',()=>switchTab('login'));
+$('tab-signup').addEventListener('click',()=>switchTab('signup'));
+
+// ── SIGNUP AVATAR ──────────────────────────────────────────
+$('signup-av-zone').addEventListener('click',()=>$('signup-av-input').click());
+$('signup-av-input').addEventListener('change',async e=>{
+  const f=e.target.files[0];if(!f)return;
+  signupAv=await compress(f,200,.85);
+  $('signup-av-zone').innerHTML=`<img src="${signupAv}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;pointer-events:none"/>`;
+});
+
+// ── LOGIN ──────────────────────────────────────────────────
+async function doLogin(){
+  const name=$('login-name').value.trim().toLowerCase().replace(/\s+/g,'_');
+  const pwd=$('login-pwd').value;
+  $('login-err').textContent='';
+  if(!name||!pwd){$('login-err').textContent='Remplis tous les champs';return;}
+  $('btn-login').disabled=true;$('btn-login').textContent='Connexion...';
+  try{
+    const snap=await get(ref(db,`spk3/users/${name}`));
+    if(!snap.exists()){$('login-err').textContent='Pseudo introuvable';return;}
+    const u=snap.val();
+    if(u.pwd!==btoa(unescape(encodeURIComponent(pwd)))){$('login-err').textContent='Mot de passe incorrect';return;}
+    myId=name;myData=u;saveS();bootApp();
+  }catch(e){$('login-err').textContent='Erreur de connexion';}
+  finally{$('btn-login').disabled=false;$('btn-login').textContent='Se connecter';}
+}
+$('btn-login').addEventListener('click',doLogin);
+$('login-pwd').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+
+// ── SIGNUP ─────────────────────────────────────────────────
+$('btn-signup').addEventListener('click',async()=>{
+  const name=$('su-name').value.trim().toLowerCase().replace(/[^a-z0-9_]/g,'_');
+  const fullname=$('su-fullname').value.trim();
+  const pwd=$('su-pwd').value;
+  const bio=$('su-bio').value.trim();
+  $('signup-err').textContent='';
+  if(!name||!fullname||!pwd){$('signup-err').textContent='Remplis tous les champs';return;}
+  if(name.length<3){$('signup-err').textContent='Pseudo trop court (3 min)';return;}
+  if(pwd.length<4){$('signup-err').textContent='Mot de passe trop court (4 min)';return;}
+  $('btn-signup').disabled=true;$('btn-signup').textContent='Création...';
+  try{
+    const snap=await get(ref(db,`spk3/users/${name}`));
+    if(snap.exists()){$('signup-err').textContent='Pseudo déjà pris';return;}
+    const u={id:name,name,fullname,bio,pwd:btoa(unescape(encodeURIComponent(pwd))),
+      avatar:signupAv||DEFAV,posts:0,createdAt:Date.now()};
+    await set(ref(db,`spk3/users/${name}`),u);
+    myId=name;myData=u;saveS();bootApp();
+  }catch(e){$('signup-err').textContent='Erreur réseau';}
+  finally{$('btn-signup').disabled=false;$('btn-signup').textContent='Créer mon compte';}
+});
+
+// ── BOOT APP ───────────────────────────────────────────────
+function bootApp(){
+  $('auth-screen').classList.remove('active');
+  $('app').style.display='flex';
+  $('app').style.flexDirection='column';
+  $('top-av').src=myData.avatar||DEFAV;
+  $('feed-cav').src=myData.avatar||DEFAV;
+  $('sav').src=myData.avatar||DEFAV;
+  $('sname').textContent=myData.fullname||myData.name;
+  $('shandle').textContent='@'+myData.name;
+  showPage('feed');
+  loadFeed();
+  loadSuggestions();
+}
+
+// ── LOGOUT ─────────────────────────────────────────────────
+$('btn-logout').addEventListener('click',()=>{
+  if(feedListener){off(ref(db,'spk3/posts'),'value',feedListener);feedListener=null;}
+  myId=null;myData=null;clearS();
+  $('app').style.display='none';
+  $('auth-screen').classList.add('active');
+  switchTab('login');
+});
+
+// ── NAV ────────────────────────────────────────────────────
+function showPage(p){
+  document.querySelectorAll('.page').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.bnav-btn').forEach(el=>el.classList.remove('active'));
+  $('page-'+p)?.classList.add('active');
+  const map={feed:'bnav-feed',profile:'bnav-profile'};
+  if(map[p]) $(map[p])?.classList.add('active');
+}
+$('logo-home').addEventListener('click',()=>showPage('feed'));
+$('bnav-feed').addEventListener('click',()=>showPage('feed'));
+$('bnav-post').addEventListener('click',openCreate);
+$('bnav-profile').addEventListener('click',()=>showProfile(myId));
+$('top-av').addEventListener('click',()=>showProfile(myId));
+$('btn-new-post').addEventListener('click',openCreate);
+
+// ── FEED ───────────────────────────────────────────────────
+function loadFeed(){
+  if(feedListener){off(ref(db,'spk3/posts'),'value',feedListener);feedListener=null;}
+  $('feed-list').innerHTML=skelCards(3);
+  feedListener=onValue(ref(db,'spk3/posts'),snap=>{
+    const posts=[];
+    snap.forEach(c=>{
+      const v=c.val();
+      if(v&&v.uid) posts.push({id:c.key,...v});
+    });
+    posts.sort((a,b)=>b.createdAt-a.createdAt);
+    if(!posts.length){
+      $('feed-list').innerHTML=`<div class="empty"><div class="ei">✨</div><p>Aucune publication pour l'instant<br>Sois le premier !</p></div>`;
+      return;
+    }
+    $('feed-list').innerHTML=posts.map(renderPost).join('');
+    bindFeed();
+  });
+}
+
+function skelCards(n){
+  return Array(n).fill(0).map(()=>`
+    <div class="pcard" style="margin-bottom:16px">
+      <div style="display:flex;gap:11px;align-items:center;padding:14px 16px">
+        <div class="skel" style="width:40px;height:40px;border-radius:50%;flex-shrink:0"></div>
+        <div style="flex:1"><div class="skel" style="height:11px;width:36%;margin-bottom:7px"></div><div class="skel" style="height:9px;width:20%"></div></div>
+      </div>
+      <div class="skel" style="height:260px"></div>
+      <div style="padding:14px 16px"><div class="skel" style="height:11px;width:60%"></div></div>
+    </div>`).join('');
+}
+
+function renderPost(p){
+  const liked=p.likes&&p.likes[myId];
+  const nL=p.likes?Object.keys(p.likes).filter(k=>k!=='__init__').length:0;
+  const nC=p.comments?Object.keys(p.comments).filter(k=>k!=='__init__').length:0;
+  return `
+<div class="pcard" data-pid="${p.id}" style="margin-bottom:16px">
+  <div class="pheader">
+    <img class="pav" src="${esc(p.av||DEFAV)}" data-goto="${esc(p.uid)}" alt=""/>
+    <div class="pmeta">
+      <span class="puname" data-goto="${esc(p.uid)}">${esc(p.uname)}</span>
+      <div class="ptime">${ago(p.createdAt)}</div>
+    </div>
+    ${(p.uid===myId||myId===ADMIN_ID)?`<button class="del-btn" data-del="${p.id}" title="Supprimer">✕</button>`:''}
+  </div>
+  ${p.img?`<img class="pimg" src="${p.img}" loading="lazy" alt=""/>`:'<div style="height:2px;background:var(--bg)"></div>'}
+  <div class="pbody">
+    <div class="pactions">
+      <button class="act-btn${liked?' liked':''} like-btn" data-pid="${p.id}">
+        <span class="ico">${liked?'♥':'♡'}</span>&nbsp;${nL||''}
+      </button>
+      <button class="act-btn ctoggle" data-pid="${p.id}">
+        <span class="ico">💬</span>&nbsp;${nC||''}
+      </button>
+    </div>
+    ${p.cap?`<div class="pcaption"><strong class="puname" data-goto="${esc(p.uid)}">${esc(p.uname)}</strong>${esc(p.cap)}</div>`:''}
+    ${nC>0?`<span class="more-comments ctoggle" data-pid="${p.id}">Voir les ${nC} commentaire${nC>1?'s':''}</span>`:''}
+  </div>
+  <div class="csec" id="csec-${p.id}">
+    <div id="clist-${p.id}">${renderComments(p.comments)}</div>
+    <div class="cinp-row">
+      <img class="cav" src="${myData?.avatar||DEFAV}" alt=""/>
+      <input class="cinp" id="cinp-${p.id}" placeholder="Ajoute un commentaire..." maxlength="200"/>
+      <button class="csend" data-pid="${p.id}">Envoyer</button>
+    </div>
+  </div>
+</div>`;
+}
+
+function renderComments(comments){
+  if(!comments) return '';
+  return Object.values(comments).filter(c=>c&&c.text)
+    .sort((a,b)=>a.t-b.t)
+    .map(c=>`
+      <div class="citem">
+        <img class="cav" src="${esc(c.av||DEFAV)}" alt=""/>
+        <div class="cbubble">
+          <span class="cuname puname" data-goto="${esc(c.uid)}">${esc(c.uname)}</span>
+          <span class="ctext">${esc(c.text)}</span>
+          <div class="ctime">${ago(c.t)}</div>
+        </div>
+      </div>`).join('');
+}
+
+function bindFeed(){
+  document.querySelectorAll('[data-goto]').forEach(el=>
+    el.addEventListener('click',()=>showProfile(el.dataset.goto)));
+  document.querySelectorAll('.like-btn').forEach(btn=>
+    btn.addEventListener('click',()=>toggleLike(btn.dataset.pid)));
+  document.querySelectorAll('.ctoggle').forEach(btn=>
+    btn.addEventListener('click',()=>{
+      const s=$('csec-'+btn.dataset.pid);
+      s.classList.toggle('open');
+      if(s.classList.contains('open')) $('cinp-'+btn.dataset.pid)?.focus();
+    }));
+  document.querySelectorAll('.csend').forEach(btn=>
+    btn.addEventListener('click',()=>sendComment(btn.dataset.pid)));
+  document.querySelectorAll('.cinp').forEach(inp=>
+    inp.addEventListener('keydown',e=>{if(e.key==='Enter')sendComment(inp.id.replace('cinp-',''));}));
+  document.querySelectorAll('.del-btn').forEach(btn=>
+    btn.addEventListener('click',async()=>{
+      if(!confirm('Supprimer ?')) return;
+      await remove(ref(db,`spk3/posts/${btn.dataset.del}`));
+      toast('Supprimé');
+    }));
+}
+
+// ── LIKE ───────────────────────────────────────────────────
+async function toggleLike(pid){
+  const s=await get(ref(db,`spk3/posts/${pid}/likes/${myId}`));
+  if(s.exists()) await remove(ref(db,`spk3/posts/${pid}/likes/${myId}`));
+  else await set(ref(db,`spk3/posts/${pid}/likes/${myId}`),true);
+}
+
+// ── COMMENT ────────────────────────────────────────────────
+async function sendComment(pid){
+  const inp=$('cinp-'+pid);
+  const text=inp.value.trim();if(!text)return;inp.value='';
+  await push(ref(db,`spk3/posts/${pid}/comments`),{
+    uid:myId,uname:myData.fullname||myData.name,
+    av:myData.avatar||DEFAV,text,t:Date.now()
+  });
+  const snap=await get(ref(db,`spk3/posts/${pid}/comments`));
+  const cl=$('clist-'+pid);
+  if(cl){
+    cl.innerHTML=renderComments(snap.val());
+    cl.querySelectorAll('[data-goto]').forEach(el=>
+      el.addEventListener('click',()=>showProfile(el.dataset.goto)));
+  }
+}
+
+// ── CREATE POST ────────────────────────────────────────────
+function openCreate(){$('modal-create').classList.add('open');}
+function closeCreate(){
+  $('modal-create').classList.remove('open');
+  pendingImg=null;
+  $('img-drop').innerHTML=`<div class="drop-ph"><div class="dico">📸</div><p>Clique pour choisir une image</p><small>optionnel</small></div>`;
+  $('post-cap').value='';
+  $('post-img-file').value='';
+}
+
+$('open-feed').addEventListener('click',openCreate);
+$('open-img').addEventListener('click',openCreate);
+$('btn-cancel-post').addEventListener('click',closeCreate);
+$('modal-create').addEventListener('click',e=>{if(e.target===$('modal-create'))closeCreate();});
+$('img-drop').addEventListener('click',()=>$('post-img-file').click());
+$('post-img-file').addEventListener('change',async e=>{
+  const f=e.target.files[0];if(!f)return;
+  $('btn-post').disabled=true;$('btn-post').textContent='Compression...';
+  pendingImg=await compress(f);
+  $('img-drop').innerHTML=`<img src="${pendingImg}" style="width:100%;height:100%;object-fit:cover;pointer-events:none"/>`;
+  $('btn-post').disabled=false;$('btn-post').textContent='Publier';
+});
+
+$('btn-post').addEventListener('click',async()=>{
+  const cap=$('post-cap').value.trim();
+  if(!cap&&!pendingImg){toast('Ajoute une image ou une légende','err');return;}
+  $('btn-post').disabled=true;$('btn-post').textContent='Publication...';
+  try{
+    await push(ref(db,'spk3/posts'),{
+      uid:myId,uname:myData.fullname||myData.name,av:myData.avatar||DEFAV,
+      cap,img:pendingImg||null,
+      likes:{'__init__':true},comments:{'__init__':true},
+      createdAt:Date.now()
+    });
+    await update(ref(db,`spk3/users/${myId}`),{posts:(myData.posts||0)+1});
+    myData.posts=(myData.posts||0)+1;
+    closeCreate();toast('Publié ! ✨','ok');
+  }catch(e){toast('Erreur','err');}
+  finally{$('btn-post').disabled=false;$('btn-post').textContent='Publier';}
+});
+
+// ── PROFILE ────────────────────────────────────────────────
+async function showProfile(uid){
+  showPage('profile');
+  $('profile-hd').innerHTML=`<div class="skel" style="height:110px;border-radius:10px"></div>`;
+  $('pgrid').innerHTML='';
+  const snap=await get(ref(db,`spk3/users/${uid}`));
+  if(!snap.exists()){toast('Utilisateur introuvable','err');showPage('feed');return;}
+  const u=snap.val();
+  const isMe=uid===myId;
+  $('profile-hd').innerHTML=`
+    <div class="profile-top">
+      <div class="pav-wrap">
+        <img class="big-av" src="${esc(u.avatar||DEFAV)}" alt=""/>
+        ${isMe?`<div class="av-edit" id="av-edit-btn" title="Modifier la photo">✏️</div>`:''}
+      </div>
+      <div class="pinfo">
+        <div class="p-fullname" style="display:flex;align-items:center;gap:10px">
+          <span id="profile-fullname-text">${esc(u.fullname||u.name)}</span>
+          ${isMe?`<button id="edit-name-btn" title="Modifier le nom" style="background:var(--bg2);border:1.5px solid var(--border);border-radius:8px;padding:4px 10px;font-size:.75rem;font-weight:600;cursor:pointer;color:var(--text2);transition:all .2s;font-family:'Outfit',sans-serif">✏️ Modifier</button>`:''}
+        </div>
+        <div class="p-handle">@${esc(u.name)}</div>
+        ${u.bio?`<div class="p-bio">${esc(u.bio)}</div>`:''}
+      </div>
+    </div>
+    <div class="pstats" style="display:flex;align-items:center;flex-wrap:wrap;justify-content:space-between">
+      <div style="display:flex;flex:1;justify-content:space-around">
+        <div class="stat" style="text-align:center"><span class="n" id="stat-n">—</span><span class="l">Publications</span></div>
+        <div class="stat" style="text-align:center;cursor:pointer" id="stat-followers-wrap"><span class="n" id="stat-followers">0</span><span class="l">Abonnés</span></div>
+        <div class="stat" style="text-align:center;cursor:pointer" id="stat-following-wrap"><span class="n" id="stat-following">0</span><span class="l">Abonnements</span></div>
+      </div>
+      ${!isMe?`<button class="follow-action-btn follow" id="follow-btn" data-uid="${esc(uid)}">Suivre</button>`:''}
+    </div>
+    ${isMe?`<div style="margin-top:14px"><button id="profile-logout-btn" style="padding:8px 18px;background:none;border:1.5px solid var(--border);border-radius:10px;font-family:'Outfit',sans-serif;font-size:.82rem;font-weight:500;cursor:pointer;color:var(--text2)">Se déconnecter</button></div>`:''}`;
+  // Follow button (other profiles)
+  if(!isMe){
+    const followBtn=$('follow-btn');
+    if(followBtn){
+      // Check if already following
+      const fsnap=await get(ref(db,`spk3/follows/${myId}/${uid}`));
+      const isFollowing=fsnap.exists();
+      setFollowBtn(followBtn,isFollowing);
+      followBtn.addEventListener('click',async()=>{
+        followBtn.disabled=true;
+        const fsnap2=await get(ref(db,`spk3/follows/${myId}/${uid}`));
+        if(fsnap2.exists()){
+          await remove(ref(db,`spk3/follows/${myId}/${uid}`));
+          setFollowBtn(followBtn,false);
+          toast('Abonnement annulé');
+        } else {
+          await set(ref(db,`spk3/follows/${myId}/${uid}`),true);
+          setFollowBtn(followBtn,true);
+          toast('Abonné ! ✓','ok');
+        }
+        followBtn.disabled=false;
+        loadFollowStats(uid);
+      });
+    }
+  }
+
+  // Followers/following stats clickable
+  $('stat-followers-wrap')?.addEventListener('click',()=>showSubs(uid,'followers'));
+  $('stat-following-wrap')?.addEventListener('click',()=>showSubs(uid,'following'));
+
+  // Subs section: show only on own profile
+  $('subs-section').style.display= isMe ? 'block' : 'none';
+  if(isMe){
+    loadSubsTabs(uid);
+    document.querySelectorAll('[data-subs-tab]').forEach(btn=>{
+      // clone to remove old listeners
+      const nb=btn.cloneNode(true);btn.parentNode.replaceChild(nb,btn);
+    });
+    document.querySelectorAll('[data-subs-tab]').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        document.querySelectorAll('[data-subs-tab]').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        renderSubsTab(uid,btn.dataset.subsTab);
+      });
+    });
+  }
+
+  loadFollowStats(uid);
+
+  if(isMe){
+    $('av-edit-btn')?.addEventListener('click',()=>$('av-edit-input').click());
+    $('profile-logout-btn')?.addEventListener('click',()=>$('btn-logout').click());
+    $('edit-name-btn')?.addEventListener('click',()=>{
+      const current=myData.fullname||myData.name;
+      const nameBox=document.createElement('div');
+      nameBox.style.cssText='display:flex;align-items:center;gap:8px;flex-wrap:wrap';
+      nameBox.innerHTML=`
+        <input id="inline-name-inp" value="${esc(current)}" maxlength="40"
+          style="font-family:'Fraunces',serif;font-size:1.4rem;font-weight:600;color:var(--text);
+          border:2px solid var(--accent);border-radius:8px;padding:4px 10px;outline:none;
+          background:var(--bg);width:220px"/>
+        <button id="inline-name-save" style="background:var(--accent);color:white;border:none;border-radius:8px;
+          padding:6px 14px;font-size:.82rem;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif">Sauver</button>
+        <button id="inline-name-cancel" style="background:var(--bg2);color:var(--text2);border:1.5px solid var(--border);
+          border-radius:8px;padding:6px 12px;font-size:.82rem;cursor:pointer;font-family:'Outfit',sans-serif">✕</button>`;
+      const nameText=$('profile-fullname-text');
+      const editBtn=$('edit-name-btn');
+      nameText.replaceWith(nameBox);
+      editBtn.style.display='none';
+      const inp=document.getElementById('inline-name-inp');
+      inp.focus();inp.select();
+      const cancel=()=>{
+        nameBox.replaceWith(nameText);
+        editBtn.style.display='';
+      };
+      document.getElementById('inline-name-cancel').addEventListener('click',cancel);
+      const save=async()=>{
+        const val=inp.value.trim();
+        if(!val){toast('Le nom ne peut pas être vide','err');return;}
+        const saveBtn=document.getElementById('inline-name-save');
+        saveBtn.disabled=true;saveBtn.textContent='...';
+        await update(ref(db,`spk3/users/${myId}`),{fullname:val});
+        myData.fullname=val;
+        $('sname').textContent=val;
+        toast('Nom mis à jour !','ok');
+        cancel();
+        // refresh display
+        nameText.textContent=val;
+        nameBox.replaceWith(nameText);
+        editBtn.style.display='';
+      };
+      document.getElementById('inline-name-save').addEventListener('click',save);
+      inp.addEventListener('keydown',e=>{if(e.key==='Enter')save();if(e.key==='Escape')cancel();});
+    });
+  }
+  // Admin panel
+  $('admin-panel').style.display='none';
+  if(isMe && myId===ADMIN_ID) loadAdmin();
+  loadPosts(uid);
+}
+
+async function loadPosts(uid){
+  const snap=await get(ref(db,'spk3/posts'));
+  const posts=[];
+  snap.forEach(c=>{const p=c.val();if(p&&p.uid===uid)posts.push({id:c.key,...p});});
+  posts.sort((a,b)=>b.createdAt-a.createdAt);
+  const sn=$('stat-n');if(sn)sn.textContent=posts.length;
+  if(!posts.length){
+    $('pgrid').innerHTML=`<div style="grid-column:1/-1" class="empty"><div class="ei">📸</div><p>Aucune publication</p></div>`;
+    return;
+  }
+  $('pgrid').innerHTML=posts.map(p=>
+    p.img?`<img class="pgrid-item" src="${p.img}" loading="lazy" data-scroll="${p.id}" alt=""/>`
+    :`<div class="pgrid-ph" data-scroll="${p.id}">Aa</div>`
+  ).join('');
+  $('pgrid').querySelectorAll('[data-scroll]').forEach(el=>
+    el.addEventListener('click',()=>{
+      showPage('feed');
+      setTimeout(()=>{
+        document.querySelector(`[data-pid="${el.dataset.scroll}"]`)
+          ?.scrollIntoView({behavior:'smooth',block:'center'});
+      },150);
+    }));
+}
+
+// ── UPDATE AVATAR ──────────────────────────────────────────
+$('av-edit-input').addEventListener('change',async e=>{
+  const f=e.target.files[0];if(!f)return;
+  toast('Compression...');
+  const b64=await compress(f,200,.85);
+  await update(ref(db,`spk3/users/${myId}`),{avatar:b64});
+  myData.avatar=b64;
+  [$('top-av'),$('feed-cav'),$('sav')].forEach(el=>{if(el)el.src=b64;});
+  toast('Photo mise à jour !','ok');
+  showProfile(myId);
+});
+
+// ── SUGGESTIONS ────────────────────────────────────────────
+async function loadSuggestions(){
+  const snap=await get(ref(db,'spk3/users'));
+  if(!snap.exists()){$('suggestions').innerHTML='<div style="color:var(--text3);font-size:.82rem">Personne pour l\'instant</div>';return;}
+  const users=[];snap.forEach(c=>{if(c.key!==myId)users.push(c.val());});
+  users.sort(()=>Math.random()-.5);
+  $('suggestions').innerHTML=users.slice(0,5).map(u=>`
+    <div class="sugg">
+      <img class="sugg-av" src="${esc(u.avatar||DEFAV)}" data-uid="${esc(u.name)}" alt=""/>
+      <div class="sugg-info">
+        <div class="sugg-name" data-uid="${esc(u.name)}">${esc(u.fullname||u.name)}</div>
+        <div class="sugg-sub">@${esc(u.name)}</div>
+      </div>
+      <button class="follow-btn" data-uid="${esc(u.name)}">Voir</button>
+    </div>`).join('')||'<div style="color:var(--text3);font-size:.82rem">Personne pour l\'instant</div>';
+  $('suggestions').querySelectorAll('[data-uid]').forEach(el=>
+    el.addEventListener('click',()=>showProfile(el.dataset.uid)));
+}
+
+
+
+// ── FOLLOW SYSTEM ──────────────────────────────────────────
+function setFollowBtn(btn,isFollowing){
+  if(isFollowing){
+    btn.textContent='Abonné ✓';btn.className='follow-action-btn following';
+  } else {
+    btn.textContent='Suivre';btn.className='follow-action-btn follow';
+  }
+}
+
+async function loadFollowStats(uid){
+  // Count followers (who follows uid)
+  const allFollowsSnap=await get(ref(db,'spk3/follows'));
+  let followers=0,following=0;
+  if(allFollowsSnap.exists()){
+    allFollowsSnap.forEach(userFollows=>{
+      if(userFollows.key===uid){
+        following=Object.keys(userFollows.val()||{}).length;
+      }
+      if(userFollows.val()&&userFollows.val()[uid]) followers++;
+    });
+  }
+  const sf=$('stat-followers');const sg=$('stat-following');
+  if(sf) sf.textContent=followers;
+  if(sg) sg.textContent=following;
+}
+
+let subsCache={following:[],followers:[]};
+
+async function loadSubsTabs(uid){
+  subsCache={following:[],followers:[]};
+  const allFollowsSnap=await get(ref(db,'spk3/follows'));
+  if(!allFollowsSnap.exists()){renderSubsTab(uid,'following');return;}
+  // following = who uid follows
+  const myFollowsSnap=allFollowsSnap.child(uid);
+  if(myFollowsSnap.exists()){
+    const ids=Object.keys(myFollowsSnap.val()||{});
+    for(const id of ids){
+      const usnap=await get(ref(db,`spk3/users/${id}`));
+      if(usnap.exists()) subsCache.following.push(usnap.val());
+    }
+  }
+  // followers = who follows uid
+  allFollowsSnap.forEach(userFollows=>{
+    if(userFollows.key!==uid && userFollows.val()&&userFollows.val()[uid]){
+      subsCache.followers.push(userFollows.key);
+    }
+  });
+  // resolve follower names
+  const resolved=[];
+  for(const id of subsCache.followers){
+    const usnap=await get(ref(db,`spk3/users/${id}`));
+    if(usnap.exists()) resolved.push(usnap.val());
+  }
+  subsCache.followers=resolved;
+  // counts
+  const fc=$('subs-following-count');const rc=$('subs-followers-count');
+  if(fc) fc.textContent='('+subsCache.following.length+')';
+  if(rc) rc.textContent='('+subsCache.followers.length+')';
+  renderSubsTab(uid,'following');
+}
+
+function renderSubsTab(uid,tab){
+  const list=subsCache[tab]||[];
+  if(!list.length){
+    $('subs-list').innerHTML='<div class="subs-empty">'+(tab==='following'?'Tu ne suis personne encore':'Pas encore d’abonnés')+'</div>';
+    return;
+  }
+  $('subs-list').innerHTML=list.map(u=>`
+    <div class="subs-item" data-uid="${esc(u.name||u.id||'')}">
+      <img class="subs-av" src="${esc(u.avatar||DEFAV)}" alt=""/>
+      <div class="subs-info">
+        <div class="subs-name">${esc(u.fullname||u.name||'')}</div>
+        <div class="subs-handle">@${esc(u.name||u.id||'')}</div>
+      </div>
+    </div>`).join('');
+  $('subs-list').querySelectorAll('[data-uid]').forEach(el=>
+    el.addEventListener('click',()=>showProfile(el.dataset.uid)));
+}
+
+async function showSubs(uid,tab){
+  // scroll to subs section
+  const sec=$('subs-section');
+  if(uid===myId && sec){
+    sec.style.display='block';
+    document.querySelectorAll('[data-subs-tab]').forEach(b=>{
+      b.classList.toggle('active',b.dataset.subsTab===tab);
+    });
+    renderSubsTab(uid,tab);
+    setTimeout(()=>sec.scrollIntoView({behavior:'smooth',block:'start'}),50);
+  }
+}
+
+// ── ADMIN ──────────────────────────────────────────────────
+const ADMIN_ID = 'alex84';
+let admTab = 'users';
+let admUsers = [];
+let admPosts = [];
+let admListenersReady = false;
+
+function initAdminListeners(){
+  if(admListenersReady) return;
+  admListenersReady = true;
+  document.querySelectorAll('[data-adm-tab]').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      admTab=btn.dataset.admTab;
+      document.querySelectorAll('[data-adm-tab]').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      $('adm-search').value='';
+      renderAdmTab();
+    });
+  });
+  $('adm-search').addEventListener('input',()=>renderAdmTab($('adm-search').value.trim().toLowerCase()));
+  $('adm-refresh').addEventListener('click',()=>fetchAdminData());
+}
+
+async function fetchAdminData(){
+  $('adm-refresh').textContent='⟳';
+  $('adm-refresh').style.opacity='.5';
+  const [usersSnap, postsSnap] = await Promise.all([
+    get(ref(db,'spk3/users')),
+    get(ref(db,'spk3/posts'))
+  ]);
+  admUsers=[];admPosts=[];
+  if(usersSnap.exists()) usersSnap.forEach(c=>{const u=c.val();if(u)admUsers.push({id:c.key,...u});});
+  if(postsSnap.exists()) postsSnap.forEach(c=>{const p=c.val();if(p&&p.uid)admPosts.push({id:c.key,...p});});
+  admPosts.sort((a,b)=>b.createdAt-a.createdAt);
+  $('adm-n-users').textContent=admUsers.length;
+  $('adm-n-posts').textContent=admPosts.length;
+  const totalLikes=admPosts.reduce((acc,p)=>{
+    const n=p.likes?Object.keys(p.likes).filter(k=>k!=='__init__').length:0;
+    return acc+n;
+  },0);
+  $('adm-n-likes').textContent=totalLikes;
+  $('adm-refresh').textContent='↺';
+  $('adm-refresh').style.opacity='1';
+  renderAdmTab($('adm-search').value.trim().toLowerCase());
+}
+
+async function loadAdmin(){
+  $('admin-panel').style.display='block';
+  // Reset tab to users on each open
+  admTab='users';
+  document.querySelectorAll('[data-adm-tab]').forEach(b=>b.classList.remove('active'));
+  document.querySelector('[data-adm-tab="users"]')?.classList.add('active');
+  $('adm-list').innerHTML=`<div class="admin-empty" style="color:rgba(255,255,255,.3)">Chargement...</div>`;
+  initAdminListeners();
+  await fetchAdminData();
+}
+
+function renderAdmTab(search=''){
+  if(admTab==='users') renderAdmUsers(search);
+  else renderAdmPosts(search);
+}
+
+function renderAdmUsers(search=''){
+  const filtered=admUsers.filter(u=>
+    !search||(u.name||'').toLowerCase().includes(search)||((u.fullname||'').toLowerCase()).includes(search));
+  if(!filtered.length){$('adm-list').innerHTML=`<div class="admin-empty">Aucun membre trouvé</div>`;return;}
+  $('adm-list').innerHTML=filtered.map(u=>`
+    <div class="admin-user-row" data-profile="${esc(u.id)}">
+      <img class="admin-uav" src="${esc(u.avatar||DEFAV)}" alt=""/>
+      <div class="admin-uinfo">
+        <div class="admin-uname">${esc(u.fullname||u.name)}${u.id===ADMIN_ID?' <span style="font-size:.6rem;background:linear-gradient(135deg,#ff5c35,#ff2d7a);color:white;padding:2px 7px;border-radius:10px;letter-spacing:.5px">ADMIN</span>':""}</div>
+        <div class="admin-uhandle">@${esc(u.name)} · ${u.createdAt?ago(u.createdAt)+' ago':'—'} · ${u.bio?esc(u.bio.slice(0,35))+'…':'Pas de bio'}</div>
+      </div>
+      <div class="admin-uposts">
+        <strong>${admPosts.filter(p=>p.uid===u.id).length}</strong>
+        <span style="font-size:.72rem;color:rgba(255,255,255,.35)">posts</span>
+        <div style="font-size:.72rem;color:rgba(255,255,255,.35);margin-top:1px">inscrit ${u.createdAt?ago(u.createdAt)+' ago':'—'}</div>
+      </div>
+      ${u.id!==ADMIN_ID?`<button class="admin-del-u" data-del-user="${esc(u.id)}" title="Supprimer ce compte">🗑</button>`:''}
+    </div>`).join('');
+
+  $('adm-list').querySelectorAll('[data-profile]').forEach(el=>
+    el.addEventListener('click',e=>{
+      if(e.target.closest('[data-del-user]')) return;
+      showProfile(el.dataset.profile);
+    }));
+
+  $('adm-list').querySelectorAll('[data-del-user]').forEach(btn=>
+    btn.addEventListener('click',async e=>{
+      e.stopPropagation();
+      const uid=btn.dataset.delUser;
+      const u=admUsers.find(u=>u.id===uid);
+      if(!confirm(`Supprimer le compte @${uid} et tous ses posts ?`)) return;
+      // Delete all posts
+      const toDelete=admPosts.filter(p=>p.uid===uid);
+      await Promise.all(toDelete.map(p=>remove(ref(db,`spk3/posts/${p.id}`))));
+      // Delete user
+      await remove(ref(db,`spk3/users/${uid}`));
+      toast(`@${uid} supprimé`,'ok');
+      admUsers=admUsers.filter(u=>u.id!==uid);
+      admPosts=admPosts.filter(p=>p.uid!==uid);
+      $('adm-n-users').textContent=admUsers.length;
+      $('adm-n-posts').textContent=admPosts.length;
+      renderAdmTab($('adm-search').value.trim().toLowerCase());
+    }));
+}
+
+function renderAdmPosts(search=''){
+  const filtered=admPosts.filter(p=>
+    !search||(p.cap||'').toLowerCase().includes(search)||(p.uname||'').toLowerCase().includes(search));
+  if(!filtered.length){$('adm-list').innerHTML=`<div class="admin-empty">Aucune publication trouvée</div>`;return;}
+  $('adm-list').innerHTML=filtered.map(p=>{
+    const nL=p.likes?Object.keys(p.likes).filter(k=>k!=='__init__').length:0;
+    const nC=p.comments?Object.keys(p.comments).filter(k=>k!=='__init__').length:0;
+    return `
+    <div class="admin-post-row" data-goto-user="${esc(p.uid)}">
+      <div class="admin-thumb">${p.img ? '<img src="' + p.img + '" style="width:100%;height:100%;object-fit:cover;border-radius:8px" alt=""/>' : '<span>📝</span>'}</div>
+      <div class="admin-post-info">
+        <div class="admin-post-by">@${esc(p.uid)} · ${ago(p.createdAt)}</div>
+        <div class="admin-post-cap">${p.cap?esc(p.cap):'<em style="opacity:.3">Sans légende</em>'}</div>
+      </div>
+      <div class="admin-post-meta">♥ ${nL}<br>💬 ${nC}</div>
+      <button class="admin-del-p" data-del-post="${p.id}" title="Supprimer">🗑</button>
+    </div>`;
+  }).join('');
+
+  $('adm-list').querySelectorAll('[data-goto-user]').forEach(el=>
+    el.addEventListener('click',e=>{
+      if(e.target.closest('[data-del-post]')) return;
+      showProfile(el.dataset.gotoUser);
+    }));
+  $('adm-list').querySelectorAll('[data-del-post]').forEach(btn=>
+    btn.addEventListener('click',async e=>{
+      e.stopPropagation();
+      if(!confirm('Supprimer cette publication ?')) return;
+      await remove(ref(db,`spk3/posts/${btn.dataset.delPost}`));
+      admPosts=admPosts.filter(p=>p.id!==btn.dataset.delPost);
+      $('adm-n-posts').textContent=admPosts.length;
+      toast('Publication supprimée','ok');
+      renderAdmTab($('adm-search').value.trim().toLowerCase());
+    }));
+}
+
+// ── BOOT ───────────────────────────────────────────────────
+async function boot(){
+  const s=loadS();
+  if(s?.id){
+    try{
+      const snap=await get(ref(db,`spk3/users/${s.id}`));
+      if(snap.exists()){myId=s.id;myData=snap.val();bootApp();return;}
+    }catch(e){}
+    clearS();
+  }
+  $('auth-screen').classList.add('active');
+}
+
+boot();
+</script>
+</body>
+</html>
